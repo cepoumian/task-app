@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
 
-  # ─── Base de datos ───────────────────────
+  # ─── Base de datos ────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: task-postgres
@@ -20,14 +20,12 @@ services:
       timeout:  5s
       retries:  5
 
-  # ─── Backend API ─────────────────────────
+  # ─── Backend API ──────────────────────────
   backend:
     build:
       context:    ./task-app-backend
       dockerfile: Dockerfile
     container_name: task-backend
-    ports:
-      - "4000:4000"
     environment:
       DB_HOST:     postgres
       DB_PORT:     "5432"
@@ -41,29 +39,42 @@ services:
     networks:
       - backend-net
       - frontend-net
+    restart: unless-stopped
 
-  # ─── Frontend ────────────────────────────
+  # ─── Frontend ─────────────────────────────
   frontend:
     build:
       context:    ./task-app-frontend
       dockerfile: Dockerfile
     container_name: task-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      API_URL: http://backend:4000
     depends_on:
       - backend
     networks:
       - frontend-net
+    restart: unless-stopped
 
-# ─── Redes ───────────────────────────────
+  # ─── Nginx Reverse Proxy ──────────────────
+  nginx:
+    build:
+      context:    ./nginx
+      dockerfile: Dockerfile
+    container_name: task-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - frontend-net
+    restart: unless-stopped
+
+# ─── Redes ────────────────────────────────
 networks:
   backend-net:
     driver: bridge
   frontend-net:
     driver: bridge
 
-# ─── Volúmenes ───────────────────────────
+# ─── Volúmenes ────────────────────────────
 volumes:
   postgres-data:
