@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+
+  # ─── Base de datos ───────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: task-postgres
+    environment:
+      POSTGRES_DB:       taskdb
+      POSTGRES_USER:     taskuser
+      POSTGRES_PASSWORD: taskpass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskuser -d taskdb"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+
+  # ─── Backend API ─────────────────────────
+  backend:
+    build:
+      context:    ./task-app-backend
+      dockerfile: Dockerfile
+    container_name: task-backend
+    ports:
+      - "4000:4000"
+    environment:
+      DB_HOST:     postgres
+      DB_PORT:     "5432"
+      DB_NAME:     taskdb
+      DB_USER:     taskuser
+      DB_PASSWORD: taskpass
+      PORT:        "4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend-net
+      - frontend-net
+
+  # ─── Frontend ────────────────────────────
+  frontend:
+    build:
+      context:    ./task-app-frontend
+      dockerfile: Dockerfile
+    container_name: task-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      API_URL: http://backend:4000
+    depends_on:
+      - backend
+    networks:
+      - frontend-net
+
+# ─── Redes ───────────────────────────────
+networks:
+  backend-net:
+    driver: bridge
+  frontend-net:
+    driver: bridge
+
+# ─── Volúmenes ───────────────────────────
+volumes:
+  postgres-data:
