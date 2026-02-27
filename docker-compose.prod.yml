@@ -1,0 +1,53 @@
+# ============================================
+# PRODUCCIÓN
+# Usar con:
+# docker-compose -f docker-compose.yml \
+#                -f docker-compose.prod.yml up -d
+# ============================================
+
+version: '3.8'
+
+services:
+
+  # ─── Base de datos ────────────────────────
+  postgres:
+    # En producción NO exponemos el puerto
+    # La BD solo es accesible desde dentro de Docker
+    # (sin ports: aquí, sobreescribe el override)
+
+    # Limitamos recursos para proteger el servidor
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ─── Backend ──────────────────────────────
+  backend:
+    environment:
+      NODE_ENV: production
+    # Sin bind mounts en producción
+    # El código está dentro de la imagen
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # ─── Frontend ─────────────────────────────
+  frontend:
+    # Sin puerto directo en producción
+    # Solo accesible a través de Nginx
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # ─── Nginx ────────────────────────────────
+  nginx:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M

@@ -1,0 +1,50 @@
+# ============================================
+# DESARROLLO LOCAL
+# Docker Compose aplica este archivo
+# automáticamente al hacer docker-compose up
+# ============================================
+
+version: '3.8'
+
+services:
+
+  # ─── Base de datos ────────────────────────
+  postgres:
+    # En desarrollo exponemos el puerto para
+    # conectarte con DBeaver, TablePlus, psql, etc.
+    ports:
+      - "5432:5432"
+
+  # ─── Backend ──────────────────────────────
+  backend:
+    # Sobreescribimos NODE_ENV para desarrollo
+    environment:
+      NODE_ENV: development
+    # Montamos el código fuente como bind mount
+    # Los cambios en tu editor se reflejan en el contenedor
+    volumes:
+      - ./task-app-backend/src:/app/src
+
+  # ─── Frontend ─────────────────────────────
+  frontend:
+    # Exponemos el puerto directo para debugging
+    ports:
+      - "3000:3000"
+
+  # ─── Backend directo (sin nginx) ──────────
+  nginx:
+    # En desarrollo también exponemos el backend
+    # directamente para poder testear la API
+    environment:
+      - NGINX_ENV=development
+
+# ─── Adminer (solo cuando se necesite) ────
+  adminer:
+    image: adminer:latest
+    container_name: task-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - backend-net
+    profiles:
+      - tools
