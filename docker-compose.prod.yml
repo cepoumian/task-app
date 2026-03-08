@@ -24,6 +24,7 @@ services:
 
   # ─── Backend ──────────────────────────────
   backend:
+    image: tuusuario/task-backend:${TAG:-latest}
     environment:
       NODE_ENV: production
     # Sin bind mounts en producción
@@ -38,6 +39,8 @@ services:
   frontend:
     # Sin puerto directo en producción
     # Solo accesible a través de Nginx
+    image: tuusuario/task-frontend:${TAG:-latest}
+    # Sobreescribe el build: del compose base
     deploy:
       resources:
         limits:

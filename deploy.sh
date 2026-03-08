@@ -8,7 +8,7 @@
 # ============================================
 
 # ─── Configuración ────────────────────────
-DOCKER_USERNAME="tu-usuario-docker-hub"   # ← cambia esto
+DOCKER_USERNAME="cepoumian"   # ← cambia esto
 TAG=${1:-latest}   # Si no se pasa argumento, usa "latest"
 
 IMAGE_FRONTEND="$DOCKER_USERNAME/task-frontend:$TAG"
