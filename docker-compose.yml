@@ -35,6 +35,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       PORT:        ${PORT}
       NODE_ENV:    ${NODE_ENV}
+      REDIS_HOST:  ${REDIS_HOST}
+      REDIS_PORT:  ${REDIS_PORT}
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,6 +72,21 @@ services:
       - frontend-net
     restart: unless-stopped
 
+# ─── Redis Cache ──────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: task-redis
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
 # ─── Redes ────────────────────────────────
 networks:
   backend-net:
@@ -80,3 +97,4 @@ networks:
 # ─── Volúmenes ────────────────────────────
 volumes:
   postgres-data:
+  redis-data:
